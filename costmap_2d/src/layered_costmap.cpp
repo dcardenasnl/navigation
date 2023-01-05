@@ -88,6 +88,7 @@ void LayeredCostmap::resizeMap(unsigned int size_x, unsigned int size_y, double 
   for (vector<boost::shared_ptr<Layer> >::iterator plugin = plugins_.begin(); plugin != plugins_.end();
       ++plugin)
   {
+    ROS_INFO("Resize with plugin %s", (*plugin)->getName().c_str());
     (*plugin)->matchSize();
   }
 }

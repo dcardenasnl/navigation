@@ -92,6 +92,7 @@ void Costmap2D::resetMaps()
 
 void Costmap2D::resetMap(unsigned int x0, unsigned int y0, unsigned int xn, unsigned int yn)
 {
+  std::cout << "resetMap with costmap2d" << std::endl;
   boost::unique_lock<mutex_t> lock(*(access_));
   unsigned int len = xn - x0;
   for (unsigned int y = y0 * size_x_ + x0; y < yn * size_x_ + x0; y += size_x_)

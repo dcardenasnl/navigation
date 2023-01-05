@@ -331,6 +331,8 @@ void Costmap2DROS::reconfigureCB(costmap_2d::Costmap2DConfig &config, uint32_t l
   double map_width_meters = config.width, map_height_meters = config.height, resolution = config.resolution, origin_x =
              config.origin_x,
          origin_y = config.origin_y;
+         
+  ROS_INFO("Set width = %.3f, height=%.3f, resolution=%.3f", map_width_meters, map_height_meters, resolution);
 
   if (!layered_costmap_->isSizeLocked())
   {

@@ -86,7 +86,9 @@ void StaticLayer::onInitialize()
   if (map_sub_.getTopic() != ros::names::resolve(map_topic))
   {
     // we'll subscribe to the latched topic that the map server uses
-    ROS_INFO("Requesting the map...");
+    ROS_INFO("**********************");
+    ROS_INFO("* Requesting the map *");
+    ROS_INFO("**********************");
     map_sub_ = g_nh.subscribe(map_topic, 1, &StaticLayer::incomingMap, this);
     map_received_ = false;
     has_updated_data_ = false;
@@ -142,8 +144,13 @@ void StaticLayer::matchSize()
   if (!layered_costmap_->isRolling())
   {
     Costmap2D* master = layered_costmap_->getCostmap();
+    ROS_INFO("Resize with static later ");
     resizeMap(master->getSizeInCellsX(), master->getSizeInCellsY(), master->getResolution(),
               master->getOriginX(), master->getOriginY());
+  }
+  else
+  {
+    ROS_INFO("Match Size do nothing");
   }
 }
 
@@ -179,7 +186,7 @@ void StaticLayer::incomingMap(const nav_msgs::OccupancyGridConstPtr& new_map)
        master->getOriginY() != new_map->info.origin.position.y))
   {
     // Update the size of the layered costmap (and all layers, including this one)
-    ROS_INFO("Resizing costmap to %d X %d at %f m/pix", size_x, size_y, new_map->info.resolution);
+    ROS_INFO("Resizing costmap from %d X %d at %.4f m/pix TO %u X %u Y at %.4f", size_x, size_y, new_map->info.resolution, master->getSizeInCellsX(), master->getSizeInCellsY(), master->getResolution());
     layered_costmap_->resizeMap(size_x, size_y, new_map->info.resolution, new_map->info.origin.position.x,
                                 new_map->info.origin.position.y,
                                 true /* set size_locked to true, prevents reconfigureCb from overriding map size*/);
@@ -190,7 +197,7 @@ void StaticLayer::incomingMap(const nav_msgs::OccupancyGridConstPtr& new_map)
            origin_y_ != new_map->info.origin.position.y)
   {
     // only update the size of the costmap stored locally in this layer
-    ROS_INFO("Resizing static layer to %d X %d at %f m/pix", size_x, size_y, new_map->info.resolution);
+    ROS_INFO("Resizing static from %d X %d at %.4f m/pix TO %u X %u Y at %.4f", size_x, size_y, new_map->info.resolution, master->getSizeInCellsX(), master->getSizeInCellsY(), master->getResolution());
     resizeMap(size_x, size_y, new_map->info.resolution,
               new_map->info.origin.position.x, new_map->info.origin.position.y);
   }
@@ -198,6 +205,7 @@ void StaticLayer::incomingMap(const nav_msgs::OccupancyGridConstPtr& new_map)
   unsigned int index = 0;
 
   // initialize the costmap with static data
+  ROS_INFO("***Costmap size %u %u", size_x, size_y);
   for (unsigned int i = 0; i < size_y; ++i)
   {
     for (unsigned int j = 0; j < size_x; ++j)
@@ -339,6 +347,7 @@ void StaticLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
             master_grid.setCost(i, j, getCost(mx, my));
           else
             master_grid.setCost(i, j, std::max(getCost(mx, my), master_grid.getCost(i, j)));
+          // std::cout << "Set cost: " <<  i << " " << j <<  " " << static_cast<int>(getCost(mx, my)) << ", mast= " << static_cast<int>(master_grid.getCost(i, j)) << std::endl;
         }
       }
     }
