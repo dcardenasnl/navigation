@@ -156,6 +156,7 @@ void StaticLayer::matchSize()
 
 unsigned char StaticLayer::interpretValue(unsigned char value)
 {
+  // std::cout << "value = " << static_cast<int>(value) << std::endl;
   // check if the static value is above the unknown or lethal thresholds
   if (track_unknown_space_ && value == unknown_cost_value_)
     return NO_INFORMATION;
@@ -234,6 +235,7 @@ void StaticLayer::incomingMap(const nav_msgs::OccupancyGridConstPtr& new_map)
 
 void StaticLayer::incomingUpdate(const map_msgs::OccupancyGridUpdateConstPtr& update)
 {
+  ROS_INFO("*** UDPATE MAP ***");
   unsigned int di = 0;
   for (unsigned int y = 0; y < update->height ; y++)
   {
@@ -315,8 +317,6 @@ void StaticLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
   else
   {
     // If rolling window, the master_grid is unlikely to have same coordinates as this layer
-    unsigned int mx, my;
-    double wx, wy;
     // Might even be in a different frame
     geometry_msgs::TransformStamped transform;
     try
@@ -331,6 +331,8 @@ void StaticLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
     // Copy map data given proper transformations
     tf2::Transform tf2_transform;
     tf2::convert(transform.transform, tf2_transform);
+    unsigned int mx, my;
+    double wx, wy;
     for (unsigned int i = min_i; i < max_i; ++i)
     {
       for (unsigned int j = min_j; j < max_j; ++j)
@@ -344,13 +346,71 @@ void StaticLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
         if (worldToMap(p.x(), p.y(), mx, my))
         {
           if (!use_maximum_)
-            master_grid.setCost(i, j, getCost(mx, my));
+          {
+            const int VALUE = 5;
+            unsigned char map_cost = 0;
+            bool lethal_found = false;
+            for(int x=-VALUE; x<=VALUE; x++)
+            {
+              for(int y=-VALUE; y<=VALUE; y++)
+              {
+                if(lethal_found)
+                  continue;
+                if(getCost(mx+x, my+y)==LETHAL_OBSTACLE)
+                {
+                  map_cost = LETHAL_OBSTACLE;
+                  lethal_found = true;
+                }
+              }
+              if(lethal_found)
+                continue;
+            }
+            if(lethal_found == true)
+            {
+              master_grid.setCost(i, j, LETHAL_OBSTACLE);
+            }
+            else
+            {
+              master_grid.setCost(i, j, getCost(mx, my));
+            }
+            // if(i==0 && j==23)
+            // {
+            //   const int VALUE = 5;
+            //   for(int x=-VALUE; x<=VALUE; x++)
+            //   {
+            //     for(int y=-VALUE; y<=VALUE; y++)
+            //     {
+            //       std::cout << static_cast<int>(getCost(mx+x, my+y)) << ".";
+            //     }
+            //     std::cout << std::endl;
+            //   }
+            //   std::cout << "Set cost: " <<  i << " " << j <<  " " <<  mx << " " << my <<  " " << static_cast<int>(getCost(mx, my)) << ", mast= " << static_cast<int>(master_grid.getCost(i, j)) << lethal_found << std::endl;
+            // }
+          }
           else
+          {
             master_grid.setCost(i, j, std::max(getCost(mx, my), master_grid.getCost(i, j)));
-          // std::cout << "Set cost: " <<  i << " " << j <<  " " << static_cast<int>(getCost(mx, my)) << ", mast= " << static_cast<int>(master_grid.getCost(i, j)) << std::endl;
+          }
         }
       }
     }
+    // Debug Maps
+    // std::cout << "------- use_maximum_: " << use_maximum_ << " ----------" << std::endl;
+    // for (unsigned int i = min_i; i < max_i; ++i)
+    // {
+    //   for (unsigned int j = min_j; j < max_j; ++j)
+    //   {
+    //     if(master_grid.getCost(i, j) == 254)
+    //     {
+    //       std::cout << "X" << ".";
+    //     }
+    //     else
+    //     {
+    //       std::cout << " " << ".";
+    //     }
+    //   }
+    //   std::cout << std::endl;
+    // }
   }
 }
 
