@@ -119,13 +119,13 @@ void StaticLayer::onInitialize()
     delete dsrv_;
   }
 
-  dsrv_ = new dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>(nh);
-  dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>::CallbackType cb =
+  dsrv_ = new dynamic_reconfigure::Server<costmap_2d::StaticLayerPluginConfig>(nh);
+  dynamic_reconfigure::Server<costmap_2d::StaticLayerPluginConfig>::CallbackType cb =
       [this](auto& config, auto level){ reconfigureCB(config, level); };
   dsrv_->setCallback(cb);
 }
 
-void StaticLayer::reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t level)
+void StaticLayer::reconfigureCB(costmap_2d::StaticLayerPluginConfig &config, uint32_t level)
 {
   if (config.enabled != enabled_)
   {
@@ -135,6 +135,8 @@ void StaticLayer::reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_
     width_ = size_x_;
     height_ = size_y_;
   }
+  collision_pixels_dilation_ = config.map_collision_dilation;
+  ROS_INFO("STATICLAYER: collision_pixels_dilation used %d", collision_pixels_dilation_);
 }
 
 void StaticLayer::matchSize()
@@ -347,12 +349,12 @@ void StaticLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
         {
           if (!use_maximum_)
           {
-            const int VALUE = 5;
+            const int d = collision_pixels_dilation_;
             unsigned char map_cost = 0;
             bool lethal_found = false;
-            for(int x=-VALUE; x<=VALUE; x++)
+            for(int x=-d; x<=d; x++)
             {
-              for(int y=-VALUE; y<=VALUE; y++)
+              for(int y=-d; y<=d; y++)
               {
                 if(lethal_found)
                   continue;
