@@ -493,9 +493,17 @@ namespace move_base {
     const geometry_msgs::PoseStamped& start = global_pose;
 
     //if the planner fails or returns a zero length plan, planning failed
+    ROS_INFO("*** GLOBAL PLANNER MAKE PLAN ***");
     if(!planner_->makePlan(start, goal, plan) || plan.empty()){
       ROS_DEBUG_NAMED("move_base","Failed to find a  plan to point (%.2f, %.2f)", goal.pose.position.x, goal.pose.position.y);
       return false;
+    }
+
+    const bool DEBUG_PLAN = true;
+
+    if(DEBUG_PLAN == true)
+    {
+      ROS_INFO("Plan Size %lu", plan.size());
     }
 
     return true;

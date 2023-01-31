@@ -281,6 +281,8 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
 
     int nx = costmap_->getSizeInCellsX(), ny = costmap_->getSizeInCellsY();
 
+    ROS_INFO("Global Plan Size: %d, %d", nx, ny);
+
     //make sure to resize the underlying array that Navfn uses
     p_calc_->setSize(nx, ny);
     planner_->setSize(nx, ny);
