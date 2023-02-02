@@ -358,6 +358,8 @@ void StaticLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
               {
                 if(lethal_found)
                   continue;
+                if (mx+x >= size_x_ || my+y >= size_y_ || mx+x < 0 || my+y < 0)
+                  continue;
                 if(getCost(mx+x, my+y)==LETHAL_OBSTACLE)
                 {
                   map_cost = LETHAL_OBSTACLE;
