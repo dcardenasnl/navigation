@@ -46,6 +46,8 @@
 #include <global_planner/gradient_path.h>
 #include <global_planner/quadratic_calculator.h>
 
+#include <tf2/utils.h>
+
 //register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(global_planner::GlobalPlanner, nav_core::BaseGlobalPlanner)
 
@@ -314,12 +316,21 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
         ROS_ERROR_THROTTLE(5.0, "Failed to get a plan.");
     }
 
+    int counter = 0;
+    ROS_INFO("<< Global Plan >>>");
+    for(const geometry_msgs::PoseStamped& pose: plan)
+    {
+      ROS_INFO("i=%d, Pose=%.3f, %.3f. Heading=%.3f", counter, pose.pose.position.x, pose.pose.position.y, tf2::getYaw(pose.pose.orientation));
+      counter++;
+    }
+
     // add orientations if needed
     orientation_filter_->processPath(start, plan);
 
     //publish the plan for visualization purposes
     publishPlan(plan);
     delete[] potential_array_;
+
     return !plan.empty();
 }
 
@@ -367,7 +378,7 @@ bool GlobalPlanner::getPlanFromPotential(double start_x, double start_y, double 
     }
 
     ros::Time plan_time = ros::Time::now();
-    for (int i = path.size() -1; i>=0; i--) {
+    for (int i = path.size() -1; i>=1; i--) {
         std::pair<float, float> point = path[i];
         //convert the plan to world coordinates
         double world_x, world_y;
@@ -385,8 +396,10 @@ bool GlobalPlanner::getPlanFromPotential(double start_x, double start_y, double 
         pose.pose.orientation.w = 1.0;
         plan.push_back(pose);
     }
-    if(old_navfn_behavior_){
-            plan.push_back(goal);
+    if(old_navfn_behavior_)
+    {
+        ROS_INFO("PLUBLISH PLAN GOAL!!!");
+        plan.push_back(goal);
     }
     return !plan.empty();
 }
