@@ -283,7 +283,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
 
     int nx = costmap_->getSizeInCellsX(), ny = costmap_->getSizeInCellsY();
 
-    ROS_INFO("Global Plan Size: %d, %d", nx, ny);
+    // ROS_INFO("Global Plan Size: %d, %d", nx, ny);
 
     //make sure to resize the underlying array that Navfn uses
     p_calc_->setSize(nx, ny);
@@ -316,13 +316,13 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
         ROS_ERROR_THROTTLE(5.0, "Failed to get a plan.");
     }
 
-    int counter = 0;
-    ROS_INFO("<< Global Plan >>>");
-    for(const geometry_msgs::PoseStamped& pose: plan)
-    {
-      ROS_INFO("i=%d, Pose=%.3f, %.3f. Heading=%.3f", counter, pose.pose.position.x, pose.pose.position.y, tf2::getYaw(pose.pose.orientation));
-      counter++;
-    }
+    // int counter = 0;
+    // ROS_INFO("<< Global Plan >>>");
+    // for(const geometry_msgs::PoseStamped& pose: plan)
+    // {
+    //   ROS_INFO("i=%d, Pose=%.3f, %.3f. Heading=%.3f", counter, pose.pose.position.x, pose.pose.position.y, tf2::getYaw(pose.pose.orientation));
+    //   counter++;
+    // }
 
     // add orientations if needed
     orientation_filter_->processPath(start, plan);
